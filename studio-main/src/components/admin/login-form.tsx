@@ -229,9 +229,37 @@ function LoginFormInternal() {
 
     } catch (error) {
       console.error('Login error:', error);
+      
+      // Parse the error message from the API response
+      let errorMessage = "An error occurred during login. Please try again.";
+      let errorTitle = "Login Error";
+      
+      if (error instanceof Error) {
+        const errorMsg = error.message.toLowerCase();
+        
+        // Check for specific error messages from the API
+        if (errorMsg.includes('incorrect username or password') || 
+            errorMsg.includes('invalid credentials') ||
+            errorMsg.includes('authentication failed')) {
+          errorTitle = "Invalid Credentials";
+          errorMessage = "Incorrect username or password. Please check your credentials and try again.";
+        } else if (errorMsg.includes('user not found')) {
+          errorTitle = "User Not Found";
+          errorMessage = "No account found with this email address.";
+        } else if (errorMsg.includes('network') || errorMsg.includes('fetch')) {
+          errorTitle = "Connection Error";
+          errorMessage = "Unable to connect to the server. Please check your internet connection.";
+        } else {
+          // Use the actual error message from the API if it's user-friendly
+          if (error.message && error.message.length < 100) {
+            errorMessage = error.message;
+          }
+        }
+      }
+      
       toast({
-        title: "Login Error",
-        description: "An error occurred during login. Please try again.",
+        title: errorTitle,
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
